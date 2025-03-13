@@ -7,5 +7,3 @@ class Producer(KafkaProducer):
     
 class Consumer(KafkaConsumer):
     pass
-        
-        
