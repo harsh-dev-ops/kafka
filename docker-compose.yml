@@ -1,7 +1,7 @@
 services:
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest.arm64
+    image: confluentinc/cp-zookeeper:latest
     hostname: zookeeper
     container_name: zookeeper
     environment:
@@ -11,7 +11,7 @@ services:
       - 2181:2181
 
   broker:
-    image: confluentinc/cp-server:latest.arm64
+    image: confluentinc/cp-server:latest
     hostname: broker
     container_name: broker
     ports:
@@ -39,7 +39,7 @@ services:
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
 
   schema-registry:
-    image: confluentinc/cp-schema-registry:latest.arm64
+    image: confluentinc/cp-schema-registry:latest
     hostname: schema-registry
     container_name: schema-registry
     depends_on:
@@ -82,7 +82,7 @@ services:
       CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
 
   control-center:
-    image: confluentinc/cp-enterprise-control-center:latest.arm64
+    image: confluentinc/cp-enterprise-control-center:latest
     hostname: control-center
     container_name: control-center
     depends_on:
@@ -106,7 +106,7 @@ services:
       PORT: 9021
 
   ksqldb-server:
-    image: confluentinc/cp-ksqldb-server:latest.arm64
+    image: confluentinc/cp-ksqldb-server:latest
     hostname: ksqldb-server
     container_name: ksqldb-server
     depends_on:
@@ -129,7 +129,7 @@ services:
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
 
   ksqldb-cli:
-    image: confluentinc/cp-ksqldb-cli:latest.arm64
+    image: confluentinc/cp-ksqldb-cli:latest
     container_name: ksqldb-cli
     depends_on:
       - broker
@@ -139,7 +139,7 @@ services:
     tty: true
 
   ksql-datagen:
-    image: confluentinc/ksqldb-examples:latest.arm64
+    image: confluentinc/ksqldb-examples:latest
     hostname: ksql-datagen
     container_name: ksql-datagen
     depends_on:
@@ -161,7 +161,7 @@ services:
       STREAMS_SCHEMA_REGISTRY_PORT: 8081
 
   rest-proxy:
-    image: confluentinc/cp-kafka-rest:latest.arm64
+    image: confluentinc/cp-kafka-rest:latest
     depends_on:
       - broker
       - schema-registry
