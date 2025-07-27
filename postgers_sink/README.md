@@ -37,8 +37,8 @@
 5. **Register your kafka topic schema**
    ```bash
    curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
-   --data "{\"schema\": $(jq -Rs . < schema/chat_messages-value.avsc)}" \ 
-   http://localhost:8081/subjects/chat_messages-value/versions
+     --data @<(jq -n --arg schema "$(cat schema/chat_messages-value.avsc)" '{schema: $schema}') \
+      http://localhost:8081/subjects/chat_messages-value/versions
    ```
 
 6. **Deploy Kafka Connect connector** (wait for Connect to start):

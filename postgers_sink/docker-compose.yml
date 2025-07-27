@@ -10,6 +10,7 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092'
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -25,7 +26,6 @@ services:
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       KAFKA_PROCESS_ROLES: 'broker,controller'
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:29093'
-      KAFKA_LISTENERS: 'PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
@@ -56,47 +56,37 @@ services:
       - broker
     ports:
       - "8081:8081"
+    volumes:
+      - schema_registry_data:/var/log/schema-registry
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:29092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
 
   connect:
-    image: confluentinc/cp-kafka-connect-base:latest
+    image: cnfldemos/kafka-connect-datagen:0.6.4-7.6.0
+    hostname: connect
     container_name: connect
     depends_on:
       - broker
       - schema-registry
     ports:
-      - 8083:8083
+      - "8083:8083"
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: "broker:29092"
-      CONNECT_REST_PORT: 8083
-      CONNECT_GROUP_ID: connect
-      CONNECT_CONFIG_STORAGE_TOPIC: _connect-configs
-      CONNECT_OFFSET_STORAGE_TOPIC: _connect-offsets
-      CONNECT_STATUS_STORAGE_TOPIC: _connect-status
+      CONNECT_BOOTSTRAP_SERVERS: 'broker:29092'
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_GROUP_ID: compose-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
       CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      # CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      # CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
-      CONNECT_REST_ADVERTISED_HOST_NAME: "connect"
-      CONNECT_LOG4J_APPENDER_STDOUT_LAYOUT_CONVERSIONPATTERN: "[%d] %p %X{connector.context}%m (%c:%L)%n"
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_ERRORS_TOLERANCE: "all"
-      # CONNECT_ERRORS_DEADLETTERQUEUE_TOPIC_NAME: "dlq_${connector.name}"
-      # CONNECT_ERRORS_DEADLETTERQUEUE_TOPIC_REPLICATION_FACTOR: "1"
-      # CONNECT_ERRORS_LOG_ENABLE: "true"
-      # CONNECT_ERRORS_LOG_INCLUDE_MESSAGES: "true"
-      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components,/data/connect-jars
-    # If you want to use the Confluent Hub installer to d/l component, but make them available
-    # when running this offline, spin up the stack once and then run : 
-    #   docker cp kafka-connect:/usr/share/confluent-hub-components ./data/connect-jars
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
     volumes:
       - ./data/connect-jars:/usr/share/confluent-hub-components
     # In the command section, $ are replaced with $$ to avoid the error 'Invalid interpolation format for "command" option'
@@ -196,6 +186,17 @@ services:
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_REPLICATION_FACTOR: 1
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: 'true'
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
+      KSQL_KSQL_STREAMS_BOOTSTRAP_SERVERS: "broker:29092"
+      KSQL_KSQL_STREAMS_CONSUMER_MAX_POLL_RECORDS: "100"
+      KSQL_KSQL_STREAMS_CONSUMER_REQUEST_TIMEOUT_MS: "40000"
+      KSQL_KSQL_STREAMS_NUM_STREAM_THREADS: "2"
+      KSQL_KSQL_STREAMS_COMMIT_INTERVAL_MS: "5000"
+      KSQL_KSQL_STREAMS_CONSUMER_SESSION_TIMEOUT_MS: "45000"
+      KSQL_KSQL_STREAMS_CONSUMER_HEARTBEAT_INTERVAL_MS: "3000"
+      KSQL_KSQL_STREAMS_AUTO_OFFSET_RESET: "earliest"
+      KSQL_KSQL_SERVICE_ID: "ksql_service_1_"
+      KSQL_KSQL_STREAMS_APPLICATION_ID: "ksql_${HOSTNAME}"
+      KSQL_LOG4J_ROOT_LOGLEVEL: "DEBUG"
 
   ksqldb-cli:
     image: confluentinc/cp-ksqldb-cli:8.0.0
@@ -293,3 +294,7 @@ services:
 
 volumes:
   postgres_data:
+  kafka_logs:
+  ksqldb_data:
+  schema_registry_data:
+  control_center_data:
