@@ -1,0 +1,27 @@
+{
+  "name": "postgres-chat-sink",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "tasks.max": "1",
+    "topics": "chat_messages",
+    "connection.url": "jdbc:postgresql://postgres:5432/postgres",
+    "connection.user": "postgres",
+    "connection.password": "postgres",
+    "auto.create": "true",
+    "auto.evolve": "true",
+    "insert.mode": "insert",
+    "pk.mode": "none",
+    "table.name.format": "chat_messages",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://schema-registry:8081",
+    "errors.tolerance": "all",
+    "errors.deadletterqueue.topic.name": "dlq_chat_messages",
+    "errors.deadletterqueue.topic.replication.factor": "1",
+    "errors.deadletterqueue.context.headers.enable": "true",
+    "batch.size": "5000",                   
+    "flush.size": "5000",                     
+    "linger.ms": "100",                      
+    "max.retries": "10",
+    "retry.backoff.ms": "500"
+  }
+}
