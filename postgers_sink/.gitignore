@@ -12,3 +12,4 @@ log.*
 .env
 keypair
 data/
+postgres-driver/
