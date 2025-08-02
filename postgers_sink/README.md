@@ -57,6 +57,7 @@
      --data @"connectors/jdbc-chat-sink.json" \
      http://localhost:8083/connectors
    ```
+   
 9. **Create new virtual environment**:
    ```bash
    python3 -m venv venv
