@@ -15,7 +15,7 @@
    docker-compose up -d
    ```
 
-4. **JDBC connector download**
+4. **JDBC connector download (optional, commands already included in docker compose)**
    1. Visit: https://www.confluent.io/hub/confluentinc/kafka-connect-jdbc
    2. Download the latest version (e.g., confluentinc-kafka-connect-jdbc-10.8.4.zip).
    3. Extract it into your connectors folder:
