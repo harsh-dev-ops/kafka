@@ -1,11 +1,21 @@
 # Setup Instructions
 
-1. **Start the infrastructure**:
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/harsh-dev-ops/kafka.git
+   ```
+
+2. **Change directory**:
+   ```bash
+   cd postgers_sink
+   ```
+   
+3. **Start the infrastructure**:
    ```bash
    docker-compose up -d
    ```
 
-2. **JDBC connector download**
+4. **JDBC connector download**
    1. Visit: https://www.confluent.io/hub/confluentinc/kafka-connect-jdbc
    2. Download the latest version (e.g., confluentinc-kafka-connect-jdbc-10.8.4.zip).
    3. Extract it into your connectors folder:
@@ -14,7 +24,7 @@
    unzip confluentinc-kafka-connect-jdbc-10.8.4.zip -d connectors/jdbc-connector
    ```
 
-3. **Initialize PostgreSQL**:
+5. **Initialize PostgreSQL**:
    ```bash
    docker compose exec -T postgres psql -U postgres -d postgres < sql/init_db.sql
    ```
@@ -25,7 +35,7 @@
    wget https://jdbc.postgresql.org/download/postgresql-42.7.7.jar -O postgres-driver/postgresql-42.7.7.jar
    ``` -->
 
-4. **Create Kakfa topic**
+6. **Create Kakfa topic**
    ```bash
    docker exec -it broker kafka-topics --create \
    --topic chat_messages \
@@ -34,26 +44,35 @@
    --bootstrap-server broker:29092
    ```
 
-5. **Register your kafka topic schema**
+7. **Register your kafka topic schema**
    ```bash
    curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
      --data @<(jq -n --arg schema "$(cat schema/chat_messages-value.avsc)" '{schema: $schema}') \
       http://localhost:8081/subjects/chat_messages-value/versions
    ```
 
-6. **Deploy Kafka Connect connector** (wait for Connect to start):
+8. **Deploy Kafka Connect connector** (wait for Connect to start):
    ```bash
    curl -X POST -H "Content-Type: application/json" \
      --data @"connectors/jdbc-chat-sink.json" \
      http://localhost:8083/connectors
    ```
+9. **Create new virtual environment**:
+   ```bash
+   python3 -m venv venv
+   ```
 
-7. **Install the dependencies**
+10. **Activate the venv**
+    ```bash
+    source venv/bin/activate
+    ```
+
+11. **Install the dependencies**
    ```sh
    pip install -r requirements.txt
    ```
 
-8. **Run the producer** (in a new terminal):
+12. **Run the producer** (in a new terminal):
    ```bash
    python producer.py
    ```
