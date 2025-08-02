@@ -12,7 +12,7 @@
    
 3. **Start the infrastructure**:
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 4. **JDBC connector download (optional, commands already included in docker compose)**
